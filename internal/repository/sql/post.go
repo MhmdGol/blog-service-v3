@@ -1,30 +1,35 @@
-package repository
+package sql
 
 import (
+	"blog-service-v3/internal/repository/sql/model"
+
 	"gorm.io/gorm"
 )
 
-type Post struct {
-	gorm.Model
-	Title      string      `json:"title"`
-	Text       string      `json:"text"`
-	Categories []*Category `json:"cats" gorm:"many2many:post_categories;"`
+type PostRepository struct {
+	db *gorm.DB
 }
 
-func (s *postRepository) CreatePost(title, text string, categories []string) error {
-	var cats []*Category
+func NewPostRopo(db *gorm.DB) *PostRepository {
+	return &PostRepository{
+		db: db,
+	}
+}
+
+func (s *PostRepository) CreatePost(title, text string, categories []string) error {
+	var cats []*model.Category
 	for _, item := range categories {
-		var findCat Category
+		var findCat model.Category
 		s.db.Where("name = ?", item).First(&findCat)
 
 		if findCat.ID == 0 {
-			cats = append(cats, &Category{Name: item})
+			cats = append(cats, &model.Category{Name: item})
 		} else {
 			cats = append(cats, &findCat)
 		}
 	}
 
-	err := s.db.Create(&Post{
+	err := s.db.Create(&model.Post{
 		Title:      title,
 		Text:       text,
 		Categories: cats,
@@ -36,8 +41,8 @@ func (s *postRepository) CreatePost(title, text string, categories []string) err
 	return nil
 }
 
-func (s *postRepository) AllPosts() ([]Post, error) {
-	var posts []Post
+func (s *PostRepository) AllPosts() ([]model.Post, error) {
+	var posts []model.Post
 
 	err := s.db.Preload("Categories").Find(&posts).Error
 	if err != nil {
@@ -47,8 +52,8 @@ func (s *postRepository) AllPosts() ([]Post, error) {
 	return posts, nil
 }
 
-func (s *postRepository) PagePosts(pageNumber, pageSize int) ([]Post, error) {
-	var posts []Post
+func (s *PostRepository) PagePosts(pageNumber, pageSize int) ([]model.Post, error) {
+	var posts []model.Post
 	err := s.db.Order("updated_at desc").Offset((pageNumber - 1) * pageSize).Limit(pageSize).Find(&posts).Error
 	if err != nil {
 		return nil, err
@@ -57,20 +62,20 @@ func (s *postRepository) PagePosts(pageNumber, pageSize int) ([]Post, error) {
 	return posts, nil
 }
 
-func (s *postRepository) UpdatePost(postID int, title, text string, categories []string) error {
-	var postToUpdate Post
+func (s *PostRepository) UpdatePost(postID int, title, text string, categories []string) error {
+	var postToUpdate model.Post
 	err := s.db.Preload("Categories").Where("id = ?", postID).First(&postToUpdate).Error
 	if err != nil {
 		return err
 	}
 
-	var cats []*Category
+	var cats []*model.Category
 	for _, item := range categories {
-		var findCat Category
+		var findCat model.Category
 		s.db.Where("name = ?", item).First(&findCat)
 
 		if findCat.ID == 0 {
-			cats = append(cats, &Category{Name: item})
+			cats = append(cats, &model.Category{Name: item})
 		} else {
 			cats = append(cats, &findCat)
 		}
@@ -88,8 +93,8 @@ func (s *postRepository) UpdatePost(postID int, title, text string, categories [
 	return nil
 }
 
-func (s *postRepository) DeletePost(postID int) error {
-	var post Post
+func (s *PostRepository) DeletePost(postID int) error {
+	var post model.Post
 	err := s.db.First(&post, postID).Error
 	if err != nil {
 		return err

@@ -11,11 +11,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-type postApi struct {
-	router *mux.Router
-	app    service.PostApp
-}
-
 type categoryApi struct {
 	router *mux.Router
 	app    service.CategoryApp
@@ -28,7 +23,7 @@ type loginApi struct {
 func PostNew(app service.PostApp) *postApi {
 	a := &postApi{
 		router: mux.NewRouter().StrictSlash(true),
-		app:    app,
+		srv:    app,
 	}
 
 	a.SetupPostRoutes()

@@ -2,6 +2,10 @@ package controller
 
 import (
 	"blog-service-v3/internal/controller/authentication"
+	"blog-service-v3/internal/dto"
+	"blog-service-v3/internal/middleware"
+	"blog-service-v3/internal/model"
+	"blog-service-v3/internal/service"
 	"blog-service-v3/pkg/lib"
 	"encoding/json"
 	"fmt"
@@ -9,109 +13,136 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/gorilla/mux"
+	"github.com/samber/lo"
 )
-
-type Post struct {
-	Title string   `json:"title"`
-	Text  string   `json:"text"`
-	Cats  []string `json:"cats"`
-}
 
 type PageSize struct {
 	Size int `json:"size"`
 }
 
-func (h *postApi) createNewPost(w http.ResponseWriter, r *http.Request) {
-	if !authentication.CheckAuthentication(r) {
-		fmt.Fprintf(w, "Not allowed!")
-		return
-	}
-
-	reqBody, _ := ioutil.ReadAll(r.Body)
-
-	var post Post
-	err := json.Unmarshal(reqBody, &post)
-	if err != nil {
-		fmt.Fprintf(w, "Bad request!")
-		return
-	}
-
-	post.Cats = lib.DeDuplicate(post.Cats)
-	if len(post.Cats) > 6 {
-		fmt.Fprintf(w, "More than 6 cats is not allowed!")
-		return
-	}
-
-	h.app.CreatePost(post.Title, post.Text, post.Cats)
+type PostController struct {
+	srv    service.PostService
 }
 
-func (h *postApi) allPosts(w http.ResponseWriter, r *http.Request) {
-	allPosts, err := h.app.AllPosts()
-	if err != nil {
-		fmt.Fprintf(w, "Something went wrong!")
-		return
-	}
-
-	json.NewEncoder(w).Encode(allPosts)
+func NewPostController(router fiber.Router, srv service.PostService) *PostController {
+	ctrl := PostController{srv: srv}
+	
+	router.Group("/posts").
+			Post("/", middleware.RequireAuth, ctrl.createNewPost).
+			Get("/", ctrl.All)
+	
+	return &ctrl
 }
 
-func (h *postApi) pagePosts(w http.ResponseWriter, r *http.Request) {
+func (pc *PostController) createNewPost(ctx *fiber.Ctx) error {
+	req := dto.CreatePostRequest{}
+	if err := ctx.BodyParser(&req); err != nil {
+		return err
+	}
+
+	// it goes to service layer {
+	req.Cats = lo.Uniq(req.Cats)
+
+	if len(req.Cats) > 6 {
+		return ctx.Status(fiber.StatusBadRequest).SendString("At most 6 cats is allowed!")
+	}
+	// }
+
+	err := pc.srv.Create(model.Post{
+		Title: req.Title,
+		Text: req.Text,
+		Categories: req.Cats,
+	})
+	if err != nil {
+		return err
+	}
+
+	return ctx.SendStatus(fiber.StatusCreated)
+}
+
+func (pc *PostController) All(ctx *fiber.Ctx) (error) {
+	posts, err := pc.srv.All()
+	if err != nil {
+		return err
+	}
+
+	res := dto.AllPostsResponse{Posts: make([]dto.Post, len(posts))}
+	for i, p := range posts {
+		res.Posts[i] = dto.Post{
+			ID: uint(p.ID),
+			Title: p.Title,
+			Text: p.Text,
+			Cats: p.Categories,
+		}
+	}
+
+	return ctx.JSON(res)
+}
+
+func (pc *PostController) pagePosts(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	page, _ := strconv.Atoi(vars["id"])
+	page,req.Cats strconv.Atoi(vars["id"])
 	if page < 1 {
-		fmt.Fprintf(w, "paging starts at 1")
-		return
-	}
+		return ctx.Status(fiber.StatusBadRequest("At most 6 cats is allowed!")
 
-	var pageSize PageSize
-	reqBody, _ := ioutil.ReadAll(r.Body)
-	json.Unmarshal(reqBody, &pageSize)
 
-	posts, err := h.app.PagePosts(page, pageSize.Size)
+err := posts, ctx.Status(fiber.Create(model.Post{
+		Title: req.Title,
+		Text: req.Text,
+		Categories: req.Cats,
+	}!) err := pc.srv.PagePosts(page, pageSize.Size)
 	if err != nil {
-		fmt.Fprintf(w, "Something went wrong!")
-		return
-	}
 
-	json.NewEncoder(w).Encode(posts)
+		err := fmt.Fprintf.Create(model.Post{
+			Title: req.Title,
+			Text: req.Text,
+			Categories: req.Cats,
+		}
+	
+	}
 }
-
-func (h *postApi) updatePost(w http.ResponseWriter, r *http.Request) {
-	if !authentication.CheckAuthentication(r) {
-		fmt.Fprintf(w, "Not allowed!")
-		return
-	}
-
-	vars := mux.Vars(r)
-	key, _ := strconv.Atoi(vars["id"])
-
-	reqBody, _ := ioutil.ReadAll(r.Body)
+func (pc ctx.Status(fiber.StatusBadR("At most 6 cats is allowed!") *PostController) updatePost(w http.ResponseWriter, r *http.Request) {
+	if !authentication.CheckAuthe
+	ntication(r) {
+	err := 	fmt.Create(model.Post{
+			Title: req.Title,
+			Text: req.Text,
+			Categories: req.Cats,
+		}.Cats mux.Vars(r)
+	key, _ :
+	reqBody ctx.Status(fiber.StatusBadR("At most 6 cats is allowed!"), _ := ioutil.ReadAll(r.Body)
 
 	var post Post
-	err := json.Unmarshal(reqBody, &post)
-	if err != nil {
-		fmt.Fprintf(w, "Bad request!")
+
+.Creerr := ate(model.Post{
+	Title: req.Title,
+	Text: req.Text,
+	Categories: req.Cats,
+} != nil {
+		fmtreq.Cats, "Bad request!")
 		return
 	}
-
-	post.Cats = lib.DeDuplicate(post.Cats)
-	if len(post.Cats) > 6 {
-		fmt.Fprintf(w, "More than 6 cats is not allowed!")
-		return
-	}
-
-	h.app.UpdatePost(key, post.Title, post.Text, post.Cats)
+	if len( ctx.Status(fiber.Stat
+		usBadRe("At most 6 cats is allowed!")post.Cats) > 6 {
+		err := fmt.Fprintf(w, "More.Create(model.Post{
+			Title: req.Title,
+			Text: req.Text,
+			Categories: req.Cats,
+		}.srv.UpdatePost(key, post.Title, post.Text, post.Cats)
 }
 
-func (h *postApi) deletePost(w http.ResponseWriter, r *http.Request) {
+func (pc *PostController) deletePost(w http.ResponseWriter, r *http.Request) {
 	if !authentication.CheckAuthentication(r) {
 		fmt.Fprintf(w, "Not allowed!")
 		return
 	}
 
 	vars := mux.Vars(r)
-	key, _ := strconv.Atoi(vars["id"])
 
-	h.app.DeletePost(key)
+req err := ctx.Status(fiber.Create(model.Post{
+	Title: req.Title,
+	Text: req.Text,
+	Categories: req.Cats,
 }

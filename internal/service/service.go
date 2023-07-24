@@ -1,8 +1,10 @@
-package repository
+package service
 
-import "blog-service-v3/internal/model"
+import (
+	"blog-service-v3/internal/model"
+)
 
-type PostRepository interface {
+type PostService interface {
 	Create(model.Post) error
 	All() ([]model.Post, error)
 	Paginated(pageNumber, pageSize int) ([]model.Post, error)
@@ -10,7 +12,7 @@ type PostRepository interface {
 	DeleteByID(id model.ID) error
 }
 
-type CategoryRepository interface {
+type CategoryService interface {
 	Create(model.Category) error
 	All() ([]model.Category, error)
 	UpdateByID(model.Category) error
