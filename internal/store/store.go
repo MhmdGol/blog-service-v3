@@ -2,14 +2,21 @@ package store
 
 import (
 	"blog-service-v3/internal/repository"
+	"fmt"
 
+	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 func New() *gorm.DB {
-	// must be replaced by viper configs
-	dsn := "host=localhost port=5432 user=postgres password=postgres dbname=blog-service sslmode=disable"
+	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
+		viper.GetString("database.host"),
+		viper.GetInt("database.port"),
+		viper.GetString("database.user"),
+		viper.GetString("database.password"),
+		viper.GetString("database.dbname"),
+		viper.GetString("databse.ssl"))
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {

@@ -46,7 +46,7 @@ func (h *postApi) createNewPost(w http.ResponseWriter, r *http.Request) {
 	h.app.CreatePost(post.Title, post.Text, post.Cats)
 }
 
-func (h *postApi) AllPosts(w http.ResponseWriter, r *http.Request) {
+func (h *postApi) allPosts(w http.ResponseWriter, r *http.Request) {
 	allPosts, err := h.app.AllPosts()
 	if err != nil {
 		fmt.Fprintf(w, "Something went wrong!")
@@ -56,7 +56,7 @@ func (h *postApi) AllPosts(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(allPosts)
 }
 
-func (h *postApi) PagePosts(w http.ResponseWriter, r *http.Request) {
+func (h *postApi) pagePosts(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	page, _ := strconv.Atoi(vars["id"])
 	if page < 1 {

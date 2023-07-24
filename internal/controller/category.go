@@ -33,7 +33,7 @@ func (h *categoryApi) createNewCategory(w http.ResponseWriter, r *http.Request) 
 	h.app.CreateCategory(category.Name)
 }
 
-func (h *categoryApi) AllCategories(w http.ResponseWriter, r *http.Request) {
+func (h *categoryApi) allCategories(w http.ResponseWriter, r *http.Request) {
 	allCategories, err := h.app.AllCategories()
 	if err != nil {
 		fmt.Fprintf(w, "Something went wrong!")

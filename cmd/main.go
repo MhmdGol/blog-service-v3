@@ -1,6 +1,7 @@
 package main
 
 import (
+	"blog-service-v3/internal/configuration"
 	"blog-service-v3/internal/controller"
 	"blog-service-v3/internal/repository"
 	"blog-service-v3/internal/service"
@@ -8,6 +9,9 @@ import (
 )
 
 func main() {
+	//Setup viper
+	configuration.SetConfigs()
+
 	db := store.New()
 
 	postRepo := repository.PostNew(db)

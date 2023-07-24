@@ -1,0 +1,12 @@
+postApiPort: 8080
+categoryApiPort: 8080
+loginApiPort: 8080
+
+database: {
+  host: localhost,
+  port: 5432,
+  user: postgres,
+  password: postgres,
+  dbname: blog_service,
+  ssl: disable
+}
