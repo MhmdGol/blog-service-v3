@@ -32,10 +32,10 @@ func (cr *CategoryRepository) Create(c model.Category) error {
 	return nil
 }
 
-func (s *CategoryRepository) All() ([]model.Category, error) {
+func (cr *CategoryRepository) All() ([]model.Category, error) {
 	var categories []dbmodel.Category
 
-	err := s.db.Find(&categories).Error
+	err := cr.db.Find(&categories).Error
 	if err != nil {
 		return nil, err
 	}
@@ -50,16 +50,16 @@ func (s *CategoryRepository) All() ([]model.Category, error) {
 	return result, nil
 }
 
-func (s *CategoryRepository) UpdateByID(c model.Category) error {
+func (cr *CategoryRepository) UpdateByID(c model.Category) error {
 	var categoryToUpdate dbmodel.Category
-	err := s.db.First(&categoryToUpdate, c.ID).Error
+	err := cr.db.First(&categoryToUpdate, c.ID).Error
 	if err != nil {
 		return err
 	}
 
 	categoryToUpdate.Name = c.Name
 
-	err = s.db.Save(&categoryToUpdate).Error
+	err = cr.db.Save(&categoryToUpdate).Error
 	if err != nil {
 		return err
 	}
@@ -67,14 +67,14 @@ func (s *CategoryRepository) UpdateByID(c model.Category) error {
 	return nil
 }
 
-func (s *CategoryRepository) DeleteByID(id model.ID) error {
+func (cr *CategoryRepository) DeleteByID(id model.ID) error {
 	var category dbmodel.Category
-	err := s.db.First(&category, id).Error
+	err := cr.db.First(&category, id).Error
 	if err != nil {
 		return err
 	}
 
-	err = s.db.Delete(&category).Error
+	err = cr.db.Delete(&category).Error
 	if err != nil {
 		return err
 	}

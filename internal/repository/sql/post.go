@@ -1,7 +1,9 @@
 package sql
 
 import (
-	"blog-service-v3/internal/repository/sql/model"
+	"blog-service-v3/internal/model"
+	"blog-service-v3/internal/repository"
+	"blog-service-v3/internal/repository/sql/dbmodel"
 
 	"gorm.io/gorm"
 )
@@ -10,82 +12,120 @@ type PostRepository struct {
 	db *gorm.DB
 }
 
+var _ repository.PostRepository = (*PostRepository)(nil)
+
 func NewPostRopo(db *gorm.DB) *PostRepository {
 	return &PostRepository{
 		db: db,
 	}
 }
 
-func (s *PostRepository) CreatePost(title, text string, categories []string) error {
-	var cats []*model.Category
-	for _, item := range categories {
-		var findCat model.Category
-		s.db.Where("name = ?", item).First(&findCat)
+func (pr *PostRepository) Create(p model.Post) error {
+	cats := make([]*dbmodel.Category, len(p.Categories))
+
+	for i, c := range p.Categories {
+		var findCat dbmodel.Category
+		pr.db.Where("name = ?", c).First(&findCat)
 
 		if findCat.ID == 0 {
-			cats = append(cats, &model.Category{Name: item})
+			cats[i] = &dbmodel.Category{Name: c}
 		} else {
-			cats = append(cats, &findCat)
+			cats[i] = &findCat
 		}
 	}
 
-	err := s.db.Create(&model.Post{
-		Title:      title,
-		Text:       text,
+	err := pr.db.Create(&dbmodel.Post{
+		Title:      p.Title,
+		Text:       p.Text,
 		Categories: cats,
 	}).Error
 
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
-func (s *PostRepository) AllPosts() ([]model.Post, error) {
-	var posts []model.Post
+func (pr *PostRepository) All() ([]model.Post, error) {
+	var posts []dbmodel.Post
 
-	err := s.db.Preload("Categories").Find(&posts).Error
+	err := pr.db.Preload("Categories").Find(&posts).Error
 	if err != nil {
 		return nil, err
 	}
 
-	return posts, nil
-}
-
-func (s *PostRepository) PagePosts(pageNumber, pageSize int) ([]model.Post, error) {
-	var posts []model.Post
-	err := s.db.Order("updated_at desc").Offset((pageNumber - 1) * pageSize).Limit(pageSize).Find(&posts).Error
-	if err != nil {
-		return nil, err
-	}
-
-	return posts, nil
-}
-
-func (s *PostRepository) UpdatePost(postID int, title, text string, categories []string) error {
-	var postToUpdate model.Post
-	err := s.db.Preload("Categories").Where("id = ?", postID).First(&postToUpdate).Error
-	if err != nil {
-		return err
-	}
-
-	var cats []*model.Category
-	for _, item := range categories {
-		var findCat model.Category
-		s.db.Where("name = ?", item).First(&findCat)
-
-		if findCat.ID == 0 {
-			cats = append(cats, &model.Category{Name: item})
-		} else {
-			cats = append(cats, &findCat)
+	result := make([]model.Post, len(posts))
+	for i, p := range posts {
+		result[i] = model.Post{
+			ID:    model.ID(p.ID),
+			Title: p.Title,
+			Text:  p.Text,
+			Categories: func(c []*dbmodel.Category) []string {
+				cstr := make([]string, len(c))
+				for i2, c2 := range c {
+					cstr[i2] = c2.Name
+				}
+				return cstr
+			}(p.Categories),
 		}
 	}
 
-	postToUpdate.Title = title
-	postToUpdate.Text = text
+	return result, nil
+}
+
+func (pr *PostRepository) Paginated(pageNumber, pageSize int) ([]model.Post, error) {
+	var posts []dbmodel.Post
+
+	err := pr.db.Order("updated_at desc").Offset((pageNumber - 1) * pageSize).Limit(pageSize).Find(&posts).Error
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]model.Post, len(posts))
+	for i, p := range posts {
+		result[i] = model.Post{
+			ID:    model.ID(p.ID),
+			Title: p.Title,
+			Text:  p.Text,
+			Categories: func(c []*dbmodel.Category) []string {
+				cstr := make([]string, len(c))
+				for i2, c2 := range c {
+					cstr[i2] = c2.Name
+				}
+				return cstr
+			}(p.Categories),
+		}
+	}
+
+	return result, nil
+}
+
+func (pr *PostRepository) UpdateByID(p model.Post) error {
+	var postToUpdate dbmodel.Post
+	err := pr.db.Preload("Categories").Where("id = ?", p.ID).First(&postToUpdate).Error
+	if err != nil {
+		return err
+	}
+
+	cats := make([]*dbmodel.Category, len(p.Categories))
+
+	for i, c := range p.Categories {
+		var findCat dbmodel.Category
+		pr.db.Where("name = ?", c).First(&findCat)
+
+		if findCat.ID == 0 {
+			cats[i] = &dbmodel.Category{Name: c}
+		} else {
+			cats[i] = &findCat
+		}
+	}
+
+	postToUpdate.Title = p.Title
+	postToUpdate.Text = p.Text
 	postToUpdate.Categories = cats
 
-	err = s.db.Save(&postToUpdate).Error
+	err = pr.db.Save(&postToUpdate).Error
 	if err != nil {
 		return err
 	}
@@ -93,14 +133,14 @@ func (s *PostRepository) UpdatePost(postID int, title, text string, categories [
 	return nil
 }
 
-func (s *PostRepository) DeletePost(postID int) error {
-	var post model.Post
-	err := s.db.First(&post, postID).Error
+func (pr *PostRepository) DeleteByID(id model.ID) error {
+	var post dbmodel.Post
+	err := pr.db.First(&post, id).Error
 	if err != nil {
 		return err
 	}
 
-	err = s.db.Delete(&post).Error
+	err = pr.db.Delete(&post).Error
 	if err != nil {
 		return err
 	}
