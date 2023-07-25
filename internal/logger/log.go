@@ -1,22 +1,15 @@
-package logger
+package syslogger
 
 import "go.uber.org/zap"
 
-type CustomLogger struct {
-	*zap.Logger
-}
-
-func NewCustomLogger() (*CustomLogger, error) {
+func InitLogger(l *zap.Logger) error {
 	cfg := zap.NewDevelopmentConfig()
 
-	logger, err := cfg.Build()
+	var err error
+	l, err = cfg.Build()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return &CustomLogger{logger}, nil
-}
-
-func (c *CustomLogger) Close() error {
-	return c.Sync()
+	return nil
 }
