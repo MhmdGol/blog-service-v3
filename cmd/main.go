@@ -46,19 +46,20 @@ func run() error {
 		return err
 	}
 
-	router := fiber.New()
+	app := fiber.New()
+	app.Listen(fmt.Sprintf(":%s", conf.HttpPort))
 
-	router.Listen(fmt.Sprintf(":%s", conf.HttpPort))
+	router := app.Group("/api/v1")
 
 	postRepo := sql.NewPostRopo(db, logger)
 	postSrv := service.NewPostService(postRepo, logger)
-	_ = controller.NewPostController(router, postSrv)
+	controller.NewPostController(router, postSrv)
 
 	catRepo := sql.NewCategoryRepo(db, logger)
 	catSrv := service.NewCategoryService(catRepo, logger)
-	_ = controller.NewCategoryController(router, catSrv)
+	controller.NewCategoryController(router, catSrv)
 
-	_ = controller.NewAuthController(router, ([]byte)(conf.SecretKey))
+	controller.NewAuthController(router, ([]byte)(conf.SecretKey))
 
 	return nil
 }

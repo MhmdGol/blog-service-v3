@@ -20,9 +20,8 @@ func NewPostController(router fiber.Router, srv service.PostService) *PostContro
 
 	router.Group("/posts").
 		Post("/", middleware.RequireAuth, ctrl.CreateNewPost).
-		Get("/", ctrl.All).
-		Get("/:page", ctrl.Paginated).
-		Put("/", middleware.RequireAuth, ctrl.UpdateByID).
+		Get("/:page?", ctrl.Read).
+		Put("/:id", middleware.RequireAuth, ctrl.UpdateByID).
 		Delete("/:id", middleware.RequireAuth, ctrl.DeleteByID)
 
 	return &ctrl
@@ -54,33 +53,35 @@ func (pc *PostController) CreateNewPost(ctx *fiber.Ctx) error {
 	return ctx.SendStatus(fiber.StatusCreated)
 }
 
-func (pc *PostController) All(ctx *fiber.Ctx) error {
-	posts, err := pc.srv.All()
-	if err != nil {
-		return err
-	}
+func (pc *PostController) Read(ctx *fiber.Ctx) error {
+	pg := ctx.Params("page")
 
-	res := dto.AllPostsResponse{Posts: make([]dto.Post, len(posts))}
-	for i, p := range posts {
-		res.Posts[i] = dto.Post{
-			ID:    uint(p.ID),
-			Title: p.Title,
-			Text:  p.Text,
-			Cats:  p.Categories,
+	if pg != "" {
+		size := dto.PageSize{}
+		if err := ctx.BodyParser(&size); err != nil {
+			return err
 		}
+
+		pgNum, _ := strconv.Atoi(pg)
+		posts, err := pc.srv.Paginated(pgNum, size.Size)
+		if err != nil {
+			return err
+		}
+
+		res := dto.AllPostsResponse{Posts: make([]dto.Post, len(posts))}
+		for i, p := range posts {
+			res.Posts[i] = dto.Post{
+				ID:    uint(p.ID),
+				Title: p.Title,
+				Text:  p.Text,
+				Cats:  p.Categories,
+			}
+		}
+
+		return ctx.JSON(res)
 	}
 
-	return ctx.JSON(res)
-}
-
-func (pc *PostController) Paginated(ctx *fiber.Ctx) error {
-	size := dto.PageSize{}
-	if err := ctx.BodyParser(&size); err != nil {
-		return err
-	}
-
-	pgNum, _ := strconv.Atoi(ctx.Params("page"))
-	posts, err := pc.srv.Paginated(pgNum, size.Size)
+	posts, err := pc.srv.All()
 	if err != nil {
 		return err
 	}
@@ -104,6 +105,8 @@ func (pc *PostController) UpdateByID(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	id, _ := strconv.Atoi(ctx.Params("id"))
+
 	// it goes to service layer {
 	req.Cats = lo.Uniq(req.Cats)
 
@@ -113,7 +116,7 @@ func (pc *PostController) UpdateByID(ctx *fiber.Ctx) error {
 	// }
 
 	err := pc.srv.UpdateByID(model.Post{
-		ID:         model.ID(req.ID),
+		ID:         model.ID(id),
 		Title:      req.Title,
 		Text:       req.Text,
 		Categories: req.Cats,

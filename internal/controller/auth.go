@@ -38,7 +38,7 @@ func (ac *AuthController) Login(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(fiber.StatusUnauthorized)
 	}
 
-	// cant go to the service layer {
+	// can go to the service layer {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id":   user.ID,
 		"username":  user.Username,

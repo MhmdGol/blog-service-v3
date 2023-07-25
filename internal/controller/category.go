@@ -20,7 +20,7 @@ func NewCategoryController(router fiber.Router, srv service.CategoryService) *Ca
 	router.Group("/category").
 		Post("/", middleware.RequireAuth, ctrl.CreateNewCategory).
 		Get("/", ctrl.All).
-		Put("/", middleware.RequireAuth, ctrl.UpdateByID).
+		Put("/:id", middleware.RequireAuth, ctrl.UpdateByID).
 		Delete("/:id", middleware.RequireAuth, ctrl.DeleteByID)
 
 	return &ctrl
@@ -65,8 +65,10 @@ func (cc *CategoryController) UpdateByID(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	id, _ := strconv.Atoi(ctx.Params("id"))
+
 	err := cc.srv.UpdateByID(model.Category{
-		ID:   model.ID(req.ID),
+		ID:   model.ID(id),
 		Name: req.Name,
 	})
 	if err != nil {
