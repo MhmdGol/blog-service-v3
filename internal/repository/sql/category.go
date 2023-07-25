@@ -5,23 +5,29 @@ import (
 	"blog-service-v3/internal/repository"
 	"blog-service-v3/internal/repository/sql/dbmodel"
 
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 type CategoryRepository struct {
-	db *gorm.DB
+	db     *gorm.DB
+	logger *zap.Logger
 }
 
 // &CategoryRepository{}
 var _ repository.CategoryRepository = (*CategoryRepository)(nil)
 
-func NewCategoryRepo(db *gorm.DB) *CategoryRepository {
+func NewCategoryRepo(db *gorm.DB, logger *zap.Logger) *CategoryRepository {
+	logger.Info("NewCategoryRepo")
+
 	return &CategoryRepository{
-		db: db,
+		db:     db,
+		logger: logger,
 	}
 }
 
 func (cr *CategoryRepository) Create(c model.Category) error {
+	cr.logger.Info("Create")
 	err := cr.db.Create(&dbmodel.Category{
 		Name: c.Name,
 	}).Error

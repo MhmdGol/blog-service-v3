@@ -7,8 +7,10 @@ import (
 )
 
 type Config struct {
-	HttpURI  string         `mapstructure:"HTTP_URI"`
-	Database DatabaseConfig `mapstructure:",squash"`
+	HttpURI   string         `mapstructure:"HTTP_URI"`
+	HttpPort  string         `mapstructure:"HTTP_PORT"`
+	SecretKey string         `mapstructure:"SECRET_KEY"`
+	Database  DatabaseConfig `mapstructure:",squash"`
 }
 
 type DatabaseConfig struct {
@@ -30,6 +32,8 @@ func Load() (Config, error) {
 		panic(fmt.Errorf("failed to read config file: %w", err))
 	}
 	viper.BindEnv("HTTP_URI",
+		"HTTP_PORT",
+		"SECRET_KEY",
 		"DATABASE_HOST",
 		"DATABASE_PORT",
 		"DATABASE_USER",

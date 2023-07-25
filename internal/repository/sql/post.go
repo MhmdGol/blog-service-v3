@@ -5,22 +5,27 @@ import (
 	"blog-service-v3/internal/repository"
 	"blog-service-v3/internal/repository/sql/dbmodel"
 
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 type PostRepository struct {
-	db *gorm.DB
+	db     *gorm.DB
+	logger *zap.Logger
 }
 
 var _ repository.PostRepository = (*PostRepository)(nil)
 
-func NewPostRopo(db *gorm.DB) *PostRepository {
+func NewPostRopo(db *gorm.DB, logger *zap.Logger) *PostRepository {
+	logger.Info("NewPostRopo")
 	return &PostRepository{
-		db: db,
+		db:     db,
+		logger: logger,
 	}
 }
 
 func (pr *PostRepository) Create(p model.Post) error {
+
 	cats := make([]*dbmodel.Category, len(p.Categories))
 
 	for i, c := range p.Categories {

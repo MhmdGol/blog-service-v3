@@ -17,7 +17,7 @@ type CategoryController struct {
 func NewCategoryController(router fiber.Router, srv service.CategoryService) *CategoryController {
 	ctrl := CategoryController{srv: srv}
 
-	router.Group("/posts").
+	router.Group("/category").
 		Post("/", middleware.RequireAuth, ctrl.CreateNewCategory).
 		Get("/", ctrl.All).
 		Put("/", middleware.RequireAuth, ctrl.UpdateByID).

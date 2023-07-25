@@ -3,13 +3,19 @@ package main
 import (
 	"blog-service-v3/internal/config"
 	"blog-service-v3/internal/controller"
-	"blog-service-v3/internal/model"
 	"blog-service-v3/internal/repository/sql"
-	"blog-service-v3/internal/service"
+	"blog-service-v3/internal/repository/sql/dbmodel"
+	service "blog-service-v3/internal/service/impl"
 	"blog-service-v3/internal/store"
+	"fmt"
 	"log"
 	"os"
+
+	"github.com/gofiber/fiber/v2"
+	"go.uber.org/zap"
 )
+
+var logger *zap.Logger
 
 func main() {
 	err := run()
@@ -22,6 +28,9 @@ func main() {
 }
 
 func run() error {
+	initLogger()
+	defer logger.Sync()
+
 	conf, err := config.Load()
 	if err != nil {
 		return err
@@ -32,33 +41,34 @@ func run() error {
 		return err
 	}
 
-	err = model.Init(db)
+	err = dbmodel.Init(db)
 	if err != nil {
 		return err
 	}
 
-	postRepo := sql.NewPostRopo(db)
-	postSrv := service.PostNew(postRepo)
-	postCtrl := controller.PostNew(postSrv)
+	router := fiber.New()
 
-	postCtrl.Start()
+	router.Listen(fmt.Sprintf(":%s", conf.HttpPort))
 
-	catRepo := sql.NewCategoryRepo(db)
-	catSrv := service.CategoryNew(catRepo)
-	catCtrl := controller.CategoryNew(catSrv)
+	postRepo := sql.NewPostRopo(db, logger)
+	postSrv := service.NewPostService(postRepo, logger)
+	_ = controller.NewPostController(router, postSrv)
 
-	catCtrl.Start()
+	catRepo := sql.NewCategoryRepo(db, logger)
+	catSrv := service.NewCategoryService(catRepo, logger)
+	_ = controller.NewCategoryController(router, catSrv)
 
-	loginCtrl := controller.LoginNew()
-
-	loginCtrl.Start()
+	_ = controller.NewAuthController(router, ([]byte)(conf.SecretKey))
 
 	return nil
 }
 
-// log, err := logger.NewCustomLogger()
-// if err != nil {
-//     panic("failed to initialize logger: " + err.Error())
-// }
+func initLogger() {
+	cfg := zap.NewDevelopmentConfig()
 
-// defer log.Close()
+	var err error
+	logger, err = cfg.Build()
+	if err != nil {
+		panic("failed to initialize logger: " + err.Error())
+	}
+}
