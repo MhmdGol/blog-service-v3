@@ -1,76 +1,89 @@
 package controller
 
 import (
-	"blog-service-v3/internal/controller/authentication"
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"net/http"
+	"blog-service-v3/internal/dto"
+	"blog-service-v3/internal/middleware"
+	"blog-service-v3/internal/model"
+	"blog-service-v3/internal/service"
 	"strconv"
 
-	"github.com/gorilla/mux"
+	"github.com/gofiber/fiber/v2"
 )
 
-type Category struct {
-	Name string `json:"name"`
+type CategoryController struct {
+	srv service.CategoryService
 }
 
-func (h *categoryApi) createNewCategory(w http.ResponseWriter, r *http.Request) {
-	if !authentication.CheckAuthentication(r) {
-		fmt.Fprintf(w, "Not allowed!")
-		return
+func NewCategoryController(router fiber.Router, srv service.CategoryService) *CategoryController {
+	ctrl := CategoryController{srv: srv}
+
+	router.Group("/posts").
+		Post("/", middleware.RequireAuth, ctrl.CreateNewCategory).
+		Get("/", ctrl.All).
+		Put("/", middleware.RequireAuth, ctrl.UpdateByID).
+		Delete("/:id", middleware.RequireAuth, ctrl.DeleteByID)
+
+	return &ctrl
+}
+
+func (cc *CategoryController) CreateNewCategory(ctx *fiber.Ctx) error {
+	req := dto.Category{}
+	if err := ctx.BodyParser(&req); err != nil {
+		return err
 	}
 
-	reqBody, _ := ioutil.ReadAll(r.Body)
-
-	var category Category
-	err := json.Unmarshal(reqBody, &category)
+	err := cc.srv.Create(model.Category{
+		Name: req.Name,
+	})
 	if err != nil {
-		fmt.Fprintf(w, "Not allowed!")
-		return
+		return err
 	}
 
-	h.app.CreateCategory(category.Name)
+	return ctx.SendStatus(fiber.StatusCreated)
 }
 
-func (h *categoryApi) allCategories(w http.ResponseWriter, r *http.Request) {
-	allCategories, err := h.app.AllCategories()
+func (cc *CategoryController) All(ctx *fiber.Ctx) error {
+	categories, err := cc.srv.All()
 	if err != nil {
-		fmt.Fprintf(w, "Something went wrong!")
-		return
+		return err
 	}
 
-	json.NewEncoder(w).Encode(allCategories)
+	res := make([]dto.Category, len(categories))
+	for i, c := range categories {
+		res[i] = dto.Category{
+			ID:   uint(c.ID),
+			Name: c.Name,
+		}
+	}
+
+	return ctx.JSON(res)
 }
 
-func (h *categoryApi) updateCategory(w http.ResponseWriter, r *http.Request) {
-	if !authentication.CheckAuthentication(r) {
-		fmt.Fprintf(w, "Not allowed!")
-		return
+func (cc *CategoryController) UpdateByID(ctx *fiber.Ctx) error {
+	req := dto.Category{}
+	if err := ctx.BodyParser(&req); err != nil {
+		return err
 	}
 
-	vars := mux.Vars(r)
-	key, _ := strconv.Atoi(vars["id"])
-	reqBody, _ := ioutil.ReadAll(r.Body)
-
-	var category Category
-	err := json.Unmarshal(reqBody, &category)
+	err := cc.srv.UpdateByID(model.Category{
+		ID:   model.ID(req.ID),
+		Name: req.Name,
+	})
 	if err != nil {
-		fmt.Fprintf(w, "Bad request!")
-		return
+		return err
 	}
 
-	h.app.UpdateCategory(key, category.Name)
+	return ctx.SendStatus(fiber.StatusAccepted)
 }
 
-func (h *categoryApi) deleteCategory(w http.ResponseWriter, r *http.Request) {
-	if !authentication.CheckAuthentication(r) {
-		fmt.Fprintf(w, "Not allowed!")
-		return
+func (cc *CategoryController) DeleteByID(ctx *fiber.Ctx) error {
+	id, _ := strconv.Atoi(ctx.Params("id"))
+	idToDelete := (model.ID)(id)
+
+	err := cc.srv.DeleteByID(idToDelete)
+	if err != nil {
+		return err
 	}
 
-	vars := mux.Vars(r)
-	key, _ := strconv.Atoi(vars["id"])
-
-	h.app.DeleteCategory(key)
+	return ctx.SendStatus(fiber.StatusAccepted)
 }

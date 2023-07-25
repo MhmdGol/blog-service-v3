@@ -23,7 +23,6 @@ type DatabaseConfig struct {
 func Load() (Config, error) {
 	viper.SetConfigName(".env")
 	viper.SetConfigType("env")
-	// path set from main.go reference
 	viper.AddConfigPath(".")
 
 	err := viper.ReadInConfig()

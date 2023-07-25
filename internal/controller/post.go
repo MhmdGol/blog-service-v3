@@ -19,16 +19,16 @@ func NewPostController(router fiber.Router, srv service.PostService) *PostContro
 	ctrl := PostController{srv: srv}
 
 	router.Group("/posts").
-		Post("/", middleware.RequireAuth, ctrl.createNewPost).
+		Post("/", middleware.RequireAuth, ctrl.CreateNewPost).
 		Get("/", ctrl.All).
 		Get("/:page", ctrl.Paginated).
-		Put("/", middleware.RequireAuth, ctrl.UpdateById).
-		Delete("/:id", middleware.RequireAuth, ctrl.DeleteById)
+		Put("/", middleware.RequireAuth, ctrl.UpdateByID).
+		Delete("/:id", middleware.RequireAuth, ctrl.DeleteByID)
 
 	return &ctrl
 }
 
-func (pc *PostController) createNewPost(ctx *fiber.Ctx) error {
+func (pc *PostController) CreateNewPost(ctx *fiber.Ctx) error {
 	req := dto.CreatePostRequest{}
 	if err := ctx.BodyParser(&req); err != nil {
 		return err
@@ -98,7 +98,7 @@ func (pc *PostController) Paginated(ctx *fiber.Ctx) error {
 	return ctx.JSON(res)
 }
 
-func (pc *PostController) UpdateById(ctx *fiber.Ctx) error {
+func (pc *PostController) UpdateByID(ctx *fiber.Ctx) error {
 	req := dto.Post{}
 	if err := ctx.BodyParser(&req); err != nil {
 		return err
@@ -126,7 +126,7 @@ func (pc *PostController) UpdateById(ctx *fiber.Ctx) error {
 	return ctx.SendStatus(fiber.StatusAccepted)
 }
 
-func (pc *PostController) DeleteById(ctx *fiber.Ctx) error {
+func (pc *PostController) DeleteByID(ctx *fiber.Ctx) error {
 	id, _ := strconv.Atoi(ctx.Params("id"))
 	idToDelete := (model.ID)(id)
 
