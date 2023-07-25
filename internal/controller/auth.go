@@ -6,14 +6,19 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
+	"go.uber.org/zap"
 )
 
 type AuthController struct {
 	secretKey []byte
+	logger    *zap.Logger
 }
 
-func NewAuthController(router fiber.Router, sk []byte) *AuthController {
-	ctrl := AuthController{secretKey: sk}
+func NewAuthController(router fiber.Router, logger *zap.Logger, sk []byte) *AuthController {
+	ctrl := AuthController{
+		secretKey: sk,
+		logger:    logger,
+	}
 
 	router.Post("/login", ctrl.Login)
 

@@ -9,14 +9,19 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/samber/lo"
+	"go.uber.org/zap"
 )
 
 type PostController struct {
-	srv service.PostService
+	srv    service.PostService
+	logger *zap.Logger
 }
 
-func NewPostController(router fiber.Router, srv service.PostService) *PostController {
-	ctrl := PostController{srv: srv}
+func NewPostController(router fiber.Router, srv service.PostService, logger *zap.Logger) *PostController {
+	ctrl := PostController{
+		srv:    srv,
+		logger: logger,
+	}
 
 	router.Group("/posts").
 		Post("/", middleware.RequireAuth, ctrl.CreateNewPost).

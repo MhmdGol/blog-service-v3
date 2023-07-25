@@ -8,14 +8,19 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
+	"go.uber.org/zap"
 )
 
 type CategoryController struct {
-	srv service.CategoryService
+	srv    service.CategoryService
+	logger *zap.Logger
 }
 
-func NewCategoryController(router fiber.Router, srv service.CategoryService) *CategoryController {
-	ctrl := CategoryController{srv: srv}
+func NewCategoryController(router fiber.Router, srv service.CategoryService, logger *zap.Logger) *CategoryController {
+	ctrl := CategoryController{
+		srv:    srv,
+		logger: logger,
+	}
 
 	router.Group("/category").
 		Post("/", middleware.RequireAuth, ctrl.CreateNewCategory).

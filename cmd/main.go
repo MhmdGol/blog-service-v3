@@ -57,15 +57,15 @@ func run() error {
 
 	postRepo := sql.NewPostRopo(db, logger)
 	postSrv := service.NewPostService(postRepo, logger)
-	controller.NewPostController(router, postSrv)
+	controller.NewPostController(router, postSrv, logger)
 	logger.Info("Post layers created")
 
 	catRepo := sql.NewCategoryRepo(db, logger)
 	catSrv := service.NewCategoryService(catRepo, logger)
-	controller.NewCategoryController(router, catSrv)
+	controller.NewCategoryController(router, catSrv, logger)
 	logger.Info("Category layers created")
 
-	controller.NewAuthController(router, ([]byte)(conf.SecretKey))
+	controller.NewAuthController(router, logger, ([]byte)(conf.SecretKey))
 	logger.Info("Auth layers created")
 
 	return nil
