@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func New(conf config.DatabaseConfig) (*gorm.DB, error) {
+func NewSqlStorage(conf config.SQLDatabaseConfig) (*gorm.DB, error) {
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		conf.Host, conf.Port, conf.User, conf.Password, conf.Name, conf.Ssl)
 

@@ -11,7 +11,7 @@ type AllPostsResponse struct {
 }
 
 type Post struct {
-	ID    uint     `json:"id"`
+	ID    string   `json:"id"`
 	Title string   `json:"title"`
 	Text  string   `json:"text"`
 	Cats  []string `json:"cats"`

@@ -1,3 +1,3 @@
 package model
 
-type ID uint
+type ID string

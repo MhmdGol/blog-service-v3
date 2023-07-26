@@ -7,19 +7,26 @@ import (
 )
 
 type Config struct {
-	HttpURI   string         `mapstructure:"HTTP_URI"`
-	HttpPort  string         `mapstructure:"HTTP_PORT"`
-	SecretKey string         `mapstructure:"SECRET_KEY"`
-	Database  DatabaseConfig `mapstructure:",squash"`
+	HttpURI       string             `mapstructure:"HTTP_URI"`
+	HttpPort      string             `mapstructure:"HTTP_PORT"`
+	SecretKey     string             `mapstructure:"SECRET_KEY"`
+	SQLDatabase   SQLDatabaseConfig  `mapstructure:",squash"`
+	NoSQLDatabase NoSQLDtabaseConfig `mapstructure:",squash"`
 }
 
-type DatabaseConfig struct {
-	Host     string `mapstructure:"DATABASE_HOST"`
-	Port     string `mapstructure:"DATABASE_PORT"`
-	User     string `mapstructure:"DATABASE_USER"`
-	Password string `mapstructure:"DATABASE_PASSWORD"`
-	Name     string `mapstructure:"DATABASE_NAME"`
-	Ssl      string `mapstructure:"DATABASE_SSL"`
+type SQLDatabaseConfig struct {
+	Host     string `mapstructure:"SQL_DATABASE_HOST"`
+	Port     string `mapstructure:"SQL_DATABASE_PORT"`
+	User     string `mapstructure:"SQL_DATABASE_USER"`
+	Password string `mapstructure:"SQL_DATABASE_PASSWORD"`
+	Name     string `mapstructure:"SQL_DATABASE_NAME"`
+	Ssl      string `mapstructure:"SQL_DATABASE_SSL"`
+}
+
+type NoSQLDtabaseConfig struct {
+	Host string `mapstructure:"NOSQL_DATABASE_HOST"`
+	Port string `mapstructure:"NOSQL_DATABASE_PORT"`
+	Name string `mapstructure:"NOSQL_DATABASE_NAME"`
 }
 
 func Load() (Config, error) {
@@ -31,15 +38,18 @@ func Load() (Config, error) {
 	if err != nil {
 		panic(fmt.Errorf("failed to read config file: %w", err))
 	}
-	viper.BindEnv("HTTP_URI",
+	viper.BindEnv(
+		"HTTP_URI",
 		"HTTP_PORT",
 		"SECRET_KEY",
-		"DATABASE_HOST",
-		"DATABASE_PORT",
-		"DATABASE_USER",
-		"DATABASE_PASSWORD",
-		"DATABASE_NAME",
-		"DATABASE_SSL",
+		"SQL_DATABASE_HOST",
+		"SQL_DATABASE_PORT",
+		"SQL_DATABASE_USER",
+		"SQL_DATABASE_PASSWORD",
+		"SQL_DATABASE_NAME",
+		"SQL_DATABASE_SSL",
+		"NOSQL_DATABASE_HOST",
+		"NOSQL_DATABASE_PORT",
 	)
 
 	var c Config

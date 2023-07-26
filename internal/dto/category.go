@@ -5,6 +5,6 @@ type CreateCategoryRequest struct {
 }
 
 type Category struct {
-	ID   uint   `json:"id"`
+	ID   string `json:"id"`
 	Name string `json:"name"`
 }

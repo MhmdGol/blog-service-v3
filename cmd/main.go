@@ -4,13 +4,14 @@ import (
 	"blog-service-v3/internal/config"
 	"blog-service-v3/internal/controller"
 	syslogger "blog-service-v3/internal/logger"
-	"blog-service-v3/internal/repository/sql"
-	"blog-service-v3/internal/repository/sql/dbmodel"
+	"blog-service-v3/internal/repository/nosql"
 	service "blog-service-v3/internal/service/impl"
 	"blog-service-v3/internal/store"
+	"context"
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
@@ -37,30 +38,28 @@ func run() error {
 		return err
 	}
 
-	db, err := store.New(conf.Database)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	noSqldb, err := store.NewNosqlStorage(ctx, conf.NoSQLDatabase)
 	if err != nil {
-		logger.Info("Store didn't connect")
+		logger.Info("NoSql storage didn't connect")
 		return err
 	}
 
-	err = dbmodel.Init(db)
-	if err != nil {
-		logger.Info("Database couldn't initialize")
-		return err
-	}
-
+	// router set up
 	app := fiber.New()
 	app.Listen(fmt.Sprintf(":%s", conf.HttpPort))
 	logger.Info("App is listening", zap.String("port", conf.HttpPort))
 
 	router := app.Group("/api/v1")
+	//
 
-	postRepo := sql.NewPostRopo(db, logger)
+	postRepo := nosql.NewPostRepo(noSqldb, ctx, logger)
 	postSrv := service.NewPostService(postRepo, logger)
 	controller.NewPostController(router, postSrv, logger)
 	logger.Info("Post layers created")
 
-	catRepo := sql.NewCategoryRepo(db, logger)
+	catRepo := nosql.NewCategoryRepo(noSqldb, ctx, logger)
 	catSrv := service.NewCategoryService(catRepo, logger)
 	controller.NewCategoryController(router, catSrv, logger)
 	logger.Info("Category layers created")

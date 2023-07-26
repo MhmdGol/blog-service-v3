@@ -1,4 +1,4 @@
-package dbmodel
+package sqlmodel
 
 import (
 	"gorm.io/gorm"
@@ -6,6 +6,6 @@ import (
 
 type Category struct {
 	gorm.Model
-	Name  string  `json:"name"`
+	Name  string
 	Posts []*Post `gorm:"many2many:post_categories;"`
 }

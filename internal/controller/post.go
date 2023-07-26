@@ -76,7 +76,7 @@ func (pc *PostController) Read(ctx *fiber.Ctx) error {
 		res := dto.AllPostsResponse{Posts: make([]dto.Post, len(posts))}
 		for i, p := range posts {
 			res.Posts[i] = dto.Post{
-				ID:    uint(p.ID),
+				ID:    string(p.ID),
 				Title: p.Title,
 				Text:  p.Text,
 				Cats:  p.Categories,
@@ -94,7 +94,7 @@ func (pc *PostController) Read(ctx *fiber.Ctx) error {
 	res := dto.AllPostsResponse{Posts: make([]dto.Post, len(posts))}
 	for i, p := range posts {
 		res.Posts[i] = dto.Post{
-			ID:    uint(p.ID),
+			ID:    string(p.ID),
 			Title: p.Title,
 			Text:  p.Text,
 			Cats:  p.Categories,

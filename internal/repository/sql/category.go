@@ -3,7 +3,7 @@ package sql
 import (
 	"blog-service-v3/internal/model"
 	"blog-service-v3/internal/repository"
-	"blog-service-v3/internal/repository/sql/dbmodel"
+	"blog-service-v3/internal/repository/sql/sqlmodel"
 
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -28,7 +28,7 @@ func NewCategoryRepo(db *gorm.DB, logger *zap.Logger) *CategoryRepository {
 
 func (cr *CategoryRepository) Create(c model.Category) error {
 	cr.logger.Info("Create")
-	err := cr.db.Create(&dbmodel.Category{
+	err := cr.db.Create(&sqlmodel.Category{
 		Name: c.Name,
 	}).Error
 	if err != nil {
@@ -39,7 +39,7 @@ func (cr *CategoryRepository) Create(c model.Category) error {
 }
 
 func (cr *CategoryRepository) All() ([]model.Category, error) {
-	var categories []dbmodel.Category
+	var categories []sqlmodel.Category
 
 	err := cr.db.Find(&categories).Error
 	if err != nil {
@@ -57,7 +57,7 @@ func (cr *CategoryRepository) All() ([]model.Category, error) {
 }
 
 func (cr *CategoryRepository) UpdateByID(c model.Category) error {
-	var categoryToUpdate dbmodel.Category
+	var categoryToUpdate sqlmodel.Category
 	err := cr.db.First(&categoryToUpdate, c.ID).Error
 	if err != nil {
 		return err
@@ -74,7 +74,7 @@ func (cr *CategoryRepository) UpdateByID(c model.Category) error {
 }
 
 func (cr *CategoryRepository) DeleteByID(id model.ID) error {
-	var category dbmodel.Category
+	var category sqlmodel.Category
 	err := cr.db.First(&category, id).Error
 	if err != nil {
 		return err

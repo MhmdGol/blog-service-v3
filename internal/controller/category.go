@@ -56,7 +56,7 @@ func (cc *CategoryController) All(ctx *fiber.Ctx) error {
 	res := make([]dto.Category, len(categories))
 	for i, c := range categories {
 		res[i] = dto.Category{
-			ID:   uint(c.ID),
+			ID:   string(c.ID),
 			Name: c.Name,
 		}
 	}
