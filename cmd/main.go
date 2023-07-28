@@ -3,7 +3,7 @@ package main
 import (
 	"blog-service-v3/internal/config"
 	"blog-service-v3/internal/controller"
-	syslogger "blog-service-v3/internal/logger"
+	"blog-service-v3/internal/logger"
 	"blog-service-v3/internal/repository/nosql"
 	service "blog-service-v3/internal/service/impl"
 	"blog-service-v3/internal/store"
@@ -17,8 +17,6 @@ import (
 	"go.uber.org/zap"
 )
 
-var logger *zap.Logger
-
 func main() {
 	err := run()
 
@@ -29,8 +27,12 @@ func main() {
 }
 
 func run() error {
-	syslogger.InitLogger(logger)
+	logger, err := logger.InitLogger()
+	if err != nil {
+		return err
+	}
 	defer logger.Sync()
+	logger.Info("Logger initialized")
 
 	conf, err := config.Load()
 	if err != nil {
@@ -46,15 +48,9 @@ func run() error {
 		return err
 	}
 
-	// router set up
 	app := fiber.New()
-
 	port := conf.Port
-	app.Listen(fmt.Sprintf(":%s", port))
-	logger.Info("App is listening", zap.String("port", port))
-
 	router := app.Group("/api/v1")
-	//
 
 	postRepo := nosql.NewPostRepo(noSqldb, ctx, logger)
 	postSrv := service.NewPostService(postRepo, logger)
@@ -68,6 +64,9 @@ func run() error {
 
 	controller.NewAuthController(router, logger, ([]byte)(conf.SecretKey))
 	logger.Info("Auth layers created")
+
+	app.Listen(fmt.Sprintf(":%s", port))
+	logger.Info("App is listening", zap.String("port", port))
 
 	return nil
 }
