@@ -48,8 +48,10 @@ func run() error {
 
 	// router set up
 	app := fiber.New()
-	app.Listen(fmt.Sprintf(":%s", conf.HttpPort))
-	logger.Info("App is listening", zap.String("port", conf.HttpPort))
+
+	port := conf.Port
+	app.Listen(fmt.Sprintf(":%s", port))
+	logger.Info("App is listening", zap.String("port", port))
 
 	router := app.Group("/api/v1")
 	//

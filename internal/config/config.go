@@ -1,14 +1,12 @@
 package config
 
 import (
-	"fmt"
-
 	"github.com/spf13/viper"
 )
 
 type Config struct {
 	HttpURI       string             `mapstructure:"HTTP_URI"`
-	HttpPort      string             `mapstructure:"HTTP_PORT"`
+	Port          string             `mapstructure:"PORT"`
 	SecretKey     string             `mapstructure:"SECRET_KEY"`
 	SQLDatabase   SQLDatabaseConfig  `mapstructure:",squash"`
 	NoSQLDatabase NoSQLDtabaseConfig `mapstructure:",squash"`
@@ -36,11 +34,11 @@ func Load() (Config, error) {
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		panic(fmt.Errorf("failed to read config file: %w", err))
+		return Config{}, err
 	}
 	viper.BindEnv(
 		"HTTP_URI",
-		"HTTP_PORT",
+		"PORT",
 		"SECRET_KEY",
 		"SQL_DATABASE_HOST",
 		"SQL_DATABASE_PORT",
