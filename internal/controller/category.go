@@ -7,6 +7,7 @@ import (
 	"blog-service-v3/internal/service"
 	"strconv"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
@@ -14,12 +15,14 @@ import (
 type CategoryController struct {
 	srv    service.CategoryService
 	logger *zap.Logger
+	vld    *validator.Validate
 }
 
 func NewCategoryController(router fiber.Router, srv service.CategoryService, logger *zap.Logger) *CategoryController {
 	ctrl := CategoryController{
 		srv:    srv,
 		logger: logger,
+		vld:    validator.New(),
 	}
 
 	router.Group("/category").
@@ -37,7 +40,12 @@ func (cc *CategoryController) CreateNewCategory(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	err := cc.srv.Create(model.Category{
+	err := cc.vld.Struct(req)
+	if err != nil {
+		return err
+	}
+
+	err = cc.srv.Create(model.Category{
 		Name: req.Name,
 	})
 	if err != nil {
@@ -70,9 +78,14 @@ func (cc *CategoryController) UpdateByID(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	err := cc.vld.Struct(req)
+	if err != nil {
+		return err
+	}
+
 	id, _ := strconv.Atoi(ctx.Params("id"))
 
-	err := cc.srv.UpdateByID(model.Category{
+	err = cc.srv.UpdateByID(model.Category{
 		ID:   model.ID(id),
 		Name: req.Name,
 	})

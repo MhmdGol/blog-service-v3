@@ -7,20 +7,22 @@ import (
 	"blog-service-v3/internal/service"
 	"strconv"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
-	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
 
 type PostController struct {
 	srv    service.PostService
 	logger *zap.Logger
+	vld    *validator.Validate
 }
 
 func NewPostController(router fiber.Router, srv service.PostService, logger *zap.Logger) *PostController {
 	ctrl := PostController{
 		srv:    srv,
 		logger: logger,
+		vld:    validator.New(),
 	}
 
 	router.Group("/posts").
@@ -38,15 +40,12 @@ func (pc *PostController) CreateNewPost(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	// it goes to service layer {
-	req.Cats = lo.Uniq(req.Cats)
-
-	if len(req.Cats) > 6 {
-		return ctx.Status(fiber.StatusBadRequest).SendString("At most 6 cats is allowed!")
+	err := pc.vld.Struct(req)
+	if err != nil {
+		return err
 	}
-	// }
 
-	err := pc.srv.Create(model.Post{
+	err = pc.srv.Create(model.Post{
 		Title:      req.Title,
 		Text:       req.Text,
 		Categories: req.Cats,
@@ -64,6 +63,11 @@ func (pc *PostController) Read(ctx *fiber.Ctx) error {
 	if pg != "" {
 		size := dto.PageSize{}
 		if err := ctx.BodyParser(&size); err != nil {
+			return err
+		}
+
+		err := pc.vld.Struct(size)
+		if err != nil {
 			return err
 		}
 
@@ -110,17 +114,14 @@ func (pc *PostController) UpdateByID(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	err := pc.vld.Struct(req)
+	if err != nil {
+		return err
+	}
+
 	id, _ := strconv.Atoi(ctx.Params("id"))
 
-	// it goes to service layer {
-	req.Cats = lo.Uniq(req.Cats)
-
-	if len(req.Cats) > 6 {
-		return ctx.Status(fiber.StatusBadRequest).SendString("At most 6 cats is allowed!")
-	}
-	// }
-
-	err := pc.srv.UpdateByID(model.Post{
+	err = pc.srv.UpdateByID(model.Post{
 		ID:         model.ID(id),
 		Title:      req.Title,
 		Text:       req.Text,
