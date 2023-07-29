@@ -25,7 +25,7 @@ func NewPostController(router fiber.Router, srv service.PostService, logger *zap
 		vld:    validator.New(),
 	}
 
-	router.Group("/posts").
+	router.Group("/post").
 		Post("/", middleware.RequireAuth, ctrl.CreateNewPost).
 		Get("/:page?", ctrl.Read).
 		Put("/:id", middleware.RequireAuth, ctrl.UpdateByID).
@@ -35,6 +35,7 @@ func NewPostController(router fiber.Router, srv service.PostService, logger *zap
 }
 
 func (pc *PostController) CreateNewPost(ctx *fiber.Ctx) error {
+	pc.logger.Info("controller, post, CreateNewPost")
 	req := dto.CreatePostRequest{}
 	if err := ctx.BodyParser(&req); err != nil {
 		return err
@@ -58,6 +59,7 @@ func (pc *PostController) CreateNewPost(ctx *fiber.Ctx) error {
 }
 
 func (pc *PostController) Read(ctx *fiber.Ctx) error {
+	pc.logger.Info("controller, post, Read")
 	pg := ctx.Params("page")
 
 	if pg != "" {
@@ -109,6 +111,7 @@ func (pc *PostController) Read(ctx *fiber.Ctx) error {
 }
 
 func (pc *PostController) UpdateByID(ctx *fiber.Ctx) error {
+	pc.logger.Info("controller, post, UpdateByID")
 	req := dto.Post{}
 	if err := ctx.BodyParser(&req); err != nil {
 		return err
@@ -122,7 +125,7 @@ func (pc *PostController) UpdateByID(ctx *fiber.Ctx) error {
 	id, _ := strconv.Atoi(ctx.Params("id"))
 
 	err = pc.srv.UpdateByID(model.Post{
-		ID:         model.ID(id),
+		ID:         (model.ID)(id),
 		Title:      req.Title,
 		Text:       req.Text,
 		Categories: req.Cats,
@@ -136,6 +139,7 @@ func (pc *PostController) UpdateByID(ctx *fiber.Ctx) error {
 }
 
 func (pc *PostController) DeleteByID(ctx *fiber.Ctx) error {
+	pc.logger.Info("controller, post, DeleteByID")
 	id, _ := strconv.Atoi(ctx.Params("id"))
 	idToDelete := (model.ID)(id)
 

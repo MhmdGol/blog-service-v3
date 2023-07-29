@@ -35,6 +35,7 @@ func NewCategoryController(router fiber.Router, srv service.CategoryService, log
 }
 
 func (cc *CategoryController) CreateNewCategory(ctx *fiber.Ctx) error {
+	cc.logger.Info("controller, category, CreateNewCategory")
 	req := dto.Category{}
 	if err := ctx.BodyParser(&req); err != nil {
 		return err
@@ -56,6 +57,7 @@ func (cc *CategoryController) CreateNewCategory(ctx *fiber.Ctx) error {
 }
 
 func (cc *CategoryController) All(ctx *fiber.Ctx) error {
+	cc.logger.Info("controller, category, All")
 	categories, err := cc.srv.All()
 	if err != nil {
 		return err
@@ -73,6 +75,7 @@ func (cc *CategoryController) All(ctx *fiber.Ctx) error {
 }
 
 func (cc *CategoryController) UpdateByID(ctx *fiber.Ctx) error {
+	cc.logger.Info("controller, category, UpdateByID")
 	req := dto.Category{}
 	if err := ctx.BodyParser(&req); err != nil {
 		return err
@@ -86,7 +89,7 @@ func (cc *CategoryController) UpdateByID(ctx *fiber.Ctx) error {
 	id, _ := strconv.Atoi(ctx.Params("id"))
 
 	err = cc.srv.UpdateByID(model.Category{
-		ID:   model.ID(id),
+		ID:   (model.ID)(id),
 		Name: req.Name,
 	})
 	if err != nil {
@@ -97,6 +100,7 @@ func (cc *CategoryController) UpdateByID(ctx *fiber.Ctx) error {
 }
 
 func (cc *CategoryController) DeleteByID(ctx *fiber.Ctx) error {
+	cc.logger.Info("controller, category, DeleteByID")
 	id, _ := strconv.Atoi(ctx.Params("id"))
 	idToDelete := (model.ID)(id)
 

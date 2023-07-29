@@ -16,7 +16,7 @@ type PostRepository struct {
 
 var _ repository.PostRepository = (*PostRepository)(nil)
 
-func NewPostRopo(db *gorm.DB, logger *zap.Logger) *PostRepository {
+func NewPostRepo(db *gorm.DB, logger *zap.Logger) *PostRepository {
 	logger.Info("NewPostRopo")
 	return &PostRepository{
 		db:     db,
@@ -63,7 +63,7 @@ func (pr *PostRepository) All() ([]model.Post, error) {
 	result := make([]model.Post, len(posts))
 	for i, p := range posts {
 		result[i] = model.Post{
-			ID:    model.ID(p.ID),
+			ID:    (model.ID)(p.ID),
 			Title: p.Title,
 			Text:  p.Text,
 			Categories: func(c []*sqlmodel.Category) []string {
@@ -90,7 +90,7 @@ func (pr *PostRepository) Paginated(pageNumber, pageSize int) ([]model.Post, err
 	result := make([]model.Post, len(posts))
 	for i, p := range posts {
 		result[i] = model.Post{
-			ID:    model.ID(p.ID),
+			ID:    (model.ID)(p.ID),
 			Title: p.Title,
 			Text:  p.Text,
 			Categories: func(c []*sqlmodel.Category) []string {

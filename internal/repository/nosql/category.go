@@ -5,6 +5,7 @@ import (
 	"blog-service-v3/internal/repository"
 	"blog-service-v3/internal/repository/nosql/nosqlmodel"
 	"context"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -13,22 +14,22 @@ import (
 
 type CategoryRepository struct {
 	db     *mongo.Database
-	ctx    context.Context
 	logger *zap.Logger
 }
 
 var _ repository.CategoryRepository = (*CategoryRepository)(nil)
 
-func NewCategoryRepo(db *mongo.Database, ctx context.Context, logger *zap.Logger) *CategoryRepository {
+func NewCategoryRepo(db *mongo.Database, logger *zap.Logger) *CategoryRepository {
 	return &CategoryRepository{
 		db:     db,
-		ctx:    ctx,
 		logger: logger,
 	}
 }
 
 func (cr *CategoryRepository) Create(c model.Category) error {
-	_, err := cr.db.Collection("categories").InsertOne(cr.ctx, &nosqlmodel.Category{
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	_, err := cr.db.Collection("categories").InsertOne(ctx, &nosqlmodel.Category{
 		Name: c.Name,
 	})
 	if err != nil {
@@ -39,14 +40,16 @@ func (cr *CategoryRepository) Create(c model.Category) error {
 }
 
 func (cr *CategoryRepository) All() ([]model.Category, error) {
-	cursor, err := cr.db.Collection("categories").Find(cr.ctx, bson.D{})
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	cursor, err := cr.db.Collection("categories").Find(ctx, bson.D{})
 	if err != nil {
 		return []model.Category{}, err
 	}
-	defer cursor.Close(cr.ctx)
+	defer cursor.Close(ctx)
 
 	var categories []nosqlmodel.Category
-	if err := cursor.All(cr.ctx, &categories); err != nil {
+	if err := cursor.All(ctx, &categories); err != nil {
 		return []model.Category{}, err
 	}
 
@@ -62,15 +65,17 @@ func (cr *CategoryRepository) All() ([]model.Category, error) {
 }
 
 func (cr *CategoryRepository) UpdateByID(c model.Category) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 	var categoryToUpdate nosqlmodel.Category
-	err := cr.db.Collection("categories").FindOne(cr.ctx, bson.M{"_id": c.ID}).Decode(&categoryToUpdate)
+	err := cr.db.Collection("categories").FindOne(ctx, bson.M{"_id": c.ID}).Decode(&categoryToUpdate)
 	if err != nil {
 		return err
 	}
 
 	categoryToUpdate.Name = c.Name
 
-	_, err = cr.db.Collection("categories").UpdateOne(cr.ctx, bson.M{"_id": c.ID}, categoryToUpdate)
+	_, err = cr.db.Collection("categories").UpdateOne(ctx, bson.M{"_id": c.ID}, categoryToUpdate)
 	if err != nil {
 		return err
 	}
@@ -79,7 +84,9 @@ func (cr *CategoryRepository) UpdateByID(c model.Category) error {
 }
 
 func (cr *CategoryRepository) DeleteByID(id model.ID) error {
-	_, err := cr.db.Collection("categories").DeleteOne(cr.ctx, bson.M{"_id": id})
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	_, err := cr.db.Collection("categories").DeleteOne(ctx, bson.M{"_id": id})
 	if err != nil {
 		return err
 	}

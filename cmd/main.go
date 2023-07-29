@@ -7,11 +7,9 @@ import (
 	"blog-service-v3/internal/repository/nosql"
 	service "blog-service-v3/internal/service/impl"
 	"blog-service-v3/internal/store"
-	"context"
 	"fmt"
 	"log"
 	"os"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
@@ -40,24 +38,28 @@ func run() error {
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	noSqldb, err := store.NewNosqlStorage(ctx, conf.NoSQLDatabase)
+	db, err := store.NewNosqlStorage(conf.NoSQLDatabase)
 	if err != nil {
 		logger.Info("NoSql storage didn't connect")
 		return err
 	}
 
+	// db, err := store.NewSqlStorage(conf.SQLDatabase)
+	// if err != nil {
+	// 	logger.Info("Sql storage didn't connect")
+	// 	return err
+	// }
+
 	app := fiber.New()
 	port := conf.Port
 	router := app.Group("/api/v1")
 
-	postRepo := nosql.NewPostRepo(noSqldb, ctx, logger)
+	postRepo := nosql.NewPostRepo(db, logger)
 	postSrv := service.NewPostService(postRepo, logger)
 	controller.NewPostController(router, postSrv, logger)
 	logger.Info("Post layers created")
 
-	catRepo := nosql.NewCategoryRepo(noSqldb, ctx, logger)
+	catRepo := nosql.NewCategoryRepo(db, logger)
 	catSrv := service.NewCategoryService(catRepo, logger)
 	controller.NewCategoryController(router, catSrv, logger)
 	logger.Info("Category layers created")

@@ -49,7 +49,7 @@ func (cr *CategoryRepository) All() ([]model.Category, error) {
 	result := make([]model.Category, len(categories))
 	for i, c := range categories {
 		result[i] = model.Category{
-			ID:   model.ID(c.ID),
+			ID:   (model.ID)(c.ID),
 			Name: c.Name,
 		}
 	}
