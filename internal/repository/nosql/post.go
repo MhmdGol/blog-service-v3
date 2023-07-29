@@ -75,7 +75,7 @@ func (pr *PostRepository) All() ([]model.Post, error) {
 	result := make([]model.Post, len(posts))
 	for i, p := range posts {
 		result[i] = model.Post{
-			ID:    model.ID(p.ID[:]),
+			ID:    model.ID(p.ID.String()),
 			Title: p.Title,
 			Text:  p.Text,
 			Categories: func(c []*nosqlmodel.Category) []string {
@@ -113,7 +113,7 @@ func (pr *PostRepository) Paginated(pageNumber, pageSize int) ([]model.Post, err
 	result := make([]model.Post, len(posts))
 	for i, p := range posts {
 		result[i] = model.Post{
-			ID:    model.ID(p.ID[:]),
+			ID:    model.ID(p.ID.String()),
 			Title: p.Title,
 			Text:  p.Text,
 			Categories: func(c []*nosqlmodel.Category) []string {

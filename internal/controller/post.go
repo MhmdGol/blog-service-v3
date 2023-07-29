@@ -5,6 +5,7 @@ import (
 	"blog-service-v3/internal/middleware"
 	"blog-service-v3/internal/model"
 	"blog-service-v3/internal/service"
+	"fmt"
 	"strconv"
 
 	"github.com/go-playground/validator/v10"
@@ -82,7 +83,7 @@ func (pc *PostController) Read(ctx *fiber.Ctx) error {
 		res := dto.AllPostsResponse{Posts: make([]dto.Post, len(posts))}
 		for i, p := range posts {
 			res.Posts[i] = dto.Post{
-				ID:    string(p.ID),
+				ID:    fmt.Sprint(p.ID),
 				Title: p.Title,
 				Text:  p.Text,
 				Cats:  p.Categories,
@@ -100,7 +101,7 @@ func (pc *PostController) Read(ctx *fiber.Ctx) error {
 	res := dto.AllPostsResponse{Posts: make([]dto.Post, len(posts))}
 	for i, p := range posts {
 		res.Posts[i] = dto.Post{
-			ID:    string(p.ID),
+			ID:    fmt.Sprint(p.ID),
 			Title: p.Title,
 			Text:  p.Text,
 			Cats:  p.Categories,

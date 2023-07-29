@@ -4,6 +4,7 @@ import (
 	"blog-service-v3/internal/model"
 	"blog-service-v3/internal/repository"
 	"blog-service-v3/internal/repository/sql/sqlmodel"
+	"fmt"
 
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -49,7 +50,7 @@ func (cr *CategoryRepository) All() ([]model.Category, error) {
 	result := make([]model.Category, len(categories))
 	for i, c := range categories {
 		result[i] = model.Category{
-			ID:   (model.ID)(c.ID),
+			ID:   model.ID(fmt.Sprint(c.ID)),
 			Name: c.Name,
 		}
 	}

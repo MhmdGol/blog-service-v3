@@ -4,6 +4,7 @@ import (
 	"blog-service-v3/internal/model"
 	"blog-service-v3/internal/repository"
 	"blog-service-v3/internal/repository/sql/sqlmodel"
+	"fmt"
 
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -63,7 +64,7 @@ func (pr *PostRepository) All() ([]model.Post, error) {
 	result := make([]model.Post, len(posts))
 	for i, p := range posts {
 		result[i] = model.Post{
-			ID:    (model.ID)(p.ID),
+			ID:    model.ID(fmt.Sprint(p.ID)),
 			Title: p.Title,
 			Text:  p.Text,
 			Categories: func(c []*sqlmodel.Category) []string {
@@ -90,7 +91,7 @@ func (pr *PostRepository) Paginated(pageNumber, pageSize int) ([]model.Post, err
 	result := make([]model.Post, len(posts))
 	for i, p := range posts {
 		result[i] = model.Post{
-			ID:    (model.ID)(p.ID),
+			ID:    model.ID(fmt.Sprint(p.ID)),
 			Title: p.Title,
 			Text:  p.Text,
 			Categories: func(c []*sqlmodel.Category) []string {

@@ -5,6 +5,7 @@ import (
 	"blog-service-v3/internal/middleware"
 	"blog-service-v3/internal/model"
 	"blog-service-v3/internal/service"
+	"fmt"
 	"strconv"
 
 	"github.com/go-playground/validator/v10"
@@ -66,7 +67,7 @@ func (cc *CategoryController) All(ctx *fiber.Ctx) error {
 	res := make([]dto.Category, len(categories))
 	for i, c := range categories {
 		res[i] = dto.Category{
-			ID:   string(c.ID),
+			ID:   fmt.Sprint(c.ID),
 			Name: c.Name,
 		}
 	}
